@@ -1,31 +1,32 @@
-from flask import Flask, render_template, request
+from flask import Flask, request, render_template, redirect
 import requests
 
 app = Flask(__name__)
 
-API_ENDPOINT = 'https://api.thecatapi.com/v1/images/search'
 
+API = 'https://api.thecatapi.com/v1/images/search'
 
-@app.route('/', methods=['GET','POST'])
+@app.route('/', methods=['GET'])
 def index():
+    return render_template('index.html')
+
+@app.route('/submit', methods=['POST', 'GET'])
+def submit():
     if request.method == 'GET':
-        return render_template("index.html")
+        return redirect('/')
 
-    nome = request.form.get('nome', None)
-
+    nome = request.form.get('name', None)
     if not nome:
-        return render_template("Index.html", erro = "Você precisa informar um nome!")
+        return render_template('index.html', erro="Você não informou o seu nome!")
     
-    response = requests.get(API_ENDPOINT)
+    response = requests.get(API)
 
     if response.status_code == 200:
-        dados = response.json()
-        url_imagem = dados[0]['url'] #Posição da lista (0) e a parte que me interessa
-        return render_template("index.html", nome=nome, url_imagem=url_imagem)
-    
+        data = response.json()
+        url = data[0]['url']
+        return render_template('index.html', nome=nome, url=url)
     else:
-        print(response.status_code)
-        return render_template("index.html", erro = "Erro no sistema! O gato fugiu!")
+        return render_template('index.html', erro="Erro no sistema! Volte outra hora.")
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()
